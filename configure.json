@@ -1,0 +1,1 @@
+[{"params": {"net_device": "int *", "ifr": "int *", "cmd": "int" }, "function_name": "e1000_ioctl_xx"}]
