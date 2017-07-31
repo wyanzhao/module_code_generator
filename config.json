@@ -1,0 +1,3 @@
+[{"params": {"epfd": "int", "op": "int", "fd": "int", "event": "unsigned long"}, "function_name": "sys_epoll_ctl0"},
+{"params": {"epfd": "int", "op": "int", "fd": "int", "event": "unsigned long"}, "function_name": "sys_epoll_ctl1"},
+{"params": {"epfd": "int", "op": "int", "fd": "int", "event": "unsigned long"}, "function_name": "sys_epoll_ctl2"}]
