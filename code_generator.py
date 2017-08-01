@@ -64,13 +64,13 @@ def add_makefile_head(module_name=str):
 
 def main():
     "import config from files"
-    current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    current_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     if not os.path.exists (current_time):
         os.makedirs (current_time)
     else:
         raise Exception ("Current Folder exists")
 
-    latest_folder = "latest_foler"
+    latest_folder = "latest"
     if os.path.exists (latest_folder):
         os.remove (latest_folder)
     os.symlink (current_time, latest_folder)
