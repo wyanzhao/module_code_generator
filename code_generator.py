@@ -6,19 +6,19 @@ import os
 import datetime
 
 
-def create_posthandler(params=list):
+def create_posthandler(params):
     "Used to generate post handler function"
-    params = "static void handler_post (struct kprobe *p, struct pt_regs *regs,\n unsigned long flags)\n"
-    stack_size = 8
-    code = "{\n"
-    code += "char *sp_regs = NULL;\n"
+    _params = "static void handler_post (struct kprobe *p, struct pt_regs *regs,\n unsigned long flags)\n"
+    _stack_size = 8
+    _code = "{\n"
+    _code += "char *sp_regs = NULL;\n"
     for i in range (len (params)):
-        code += "sp_regs=(char *)regs->sp + %d;\n" % (stack_size)
-        code += "pr_info(\"<%s> esp addr: 0x%lx, value:0x%lx\\n\",\n\
+        _code += "sp_regs=(char *)regs->sp + %d;\n" % (_stack_size)
+        _code += "pr_info(\"<%s> esp addr: 0x%lx, value:0x%lx\\n\",\n\
         p->symbol_name, sp_regs, *(unsigned int *)sp_regs);\n"
-        stack_size += 4
-    code += "\n}\n\n"
-    return params + code
+        _stack_size += 4
+    _code += "\n}\n\n"
+    return _params + _code
 
 def code_generator(data):
     "#Used to generate module code"
