@@ -1,1 +1,1 @@
-[{"params": {"net_device": "int *", "ifr": "int *"}, "function_name": "sys_setpgid"}]
+[{"params": {"net_device": "int *", "ifr": "int *", "cmd": "int"}, "function_name": "e1000_ioctl"}]

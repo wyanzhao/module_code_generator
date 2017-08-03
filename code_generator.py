@@ -11,10 +11,10 @@ def create_posthandler(params):
     _params = "static void handler_post (struct kprobe *p, struct pt_regs *regs,\n unsigned long flags)\n"
     _stack_size = 8
     _code = "{\n"
-    _code += "char *sp_regs = NULL;\n"
+    _code += "char *sp_regs = kernel_stack_pointers (regs);\n"
     for i in range (len (params)):
-        _code += "sp_regs=(char *)regs->sp + %d;\n" % (_stack_size)
-        _code += "pr_info(\"<%s> esp addr: 0x%lx, value:0x%lx\\n\",\n\
+        _code += "sp_regs = sp_regs + %d;\n" % (_stack_size)
+        _code += "pr_info(\"<%s> esp addr: 0x%p, value:0x%lx\\n\",\n\
         p->symbol_name, sp_regs, *(unsigned int *)sp_regs);\n"
         _stack_size += 4
     _code += "\n}\n\n"
