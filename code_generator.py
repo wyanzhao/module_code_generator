@@ -11,7 +11,7 @@ def create_posthandler(params):
     _params = "static void handler_post (struct kprobe *p, struct pt_regs *regs,\n unsigned long flags)\n"
     _stack_size = 8
     _code = "{\n"
-    _code += "char *sp_regs = kernel_stack_pointers (regs);\n"
+    _code += "char *sp_regs = kernel_stack_pointer (regs);\n"
     _code += "char *params = NULL;\n"
     for i in range (len (params)):
         _code += "params = sp_regs + %d;\n" % (_stack_size)
