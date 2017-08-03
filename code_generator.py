@@ -12,10 +12,11 @@ def create_posthandler(params):
     _stack_size = 8
     _code = "{\n"
     _code += "char *sp_regs = kernel_stack_pointers (regs);\n"
+    _code += "char *params = NULL;\n"
     for i in range (len (params)):
-        _code += "sp_regs = sp_regs + %d;\n" % (_stack_size)
+        _code += "params = sp_regs + %d;\n" % (_stack_size)
         _code += "pr_info(\"<%s> esp addr: 0x%p, value:0x%lx\\n\",\n\
-        p->symbol_name, sp_regs, *(unsigned int *)sp_regs);\n"
+        p->symbol_name, params, *(unsigned int *)params);\n"
         _stack_size += 4
     _code += "\n}\n\n"
     return _params + _code
