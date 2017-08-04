@@ -1,3 +1,4 @@
+"This module is used to generate c code by reading from configure file"
 #!/usr/bin/python3
 
 import json
@@ -6,14 +7,14 @@ import os
 import datetime
 
 
-def create_posthandler(params):
+def create_stack_posthandler(params):
     "Used to generate post handler function"
     _params = "static void handler_post (struct kprobe *p, struct pt_regs *regs,\n unsigned long flags)\n"
     _stack_size = 8
     _code = "{\n"
     _code += "char *sp_regs = kernel_stack_pointer (regs);\n"
     _code += "char *params = NULL;\n"
-    for i in range (len (params)):
+    for i in range(len(params)):
         _code += "params = sp_regs + %d;\n" % (_stack_size)
         _code += "pr_info(\"<%s> esp addr: 0x%p, value:0x%lx\\n\",\n\
         p->symbol_name, params, *(unsigned int *)params);\n"
@@ -21,13 +22,42 @@ def create_posthandler(params):
     _code += "\n}\n\n"
     return _params + _code
 
+def create_register_posthandler(params):
+    "Used to generate post handler function"
+    _params = "static void handler_post (struct kprobe *p, struct pt_regs *regs,\n unsigned long flags)\n"
+    _stack_size = 4
+    _code = "{\n"
+    _code += "char *sp_regs = kernel_stack_pointer (regs);\n"
+    _code += "char *params = NULL;\n"
+    for i in range(len(params)):
+        if i == 0:
+            _code += "pr_info(\"<%s> param{} value:0x%lx\\n\",\n\
+            p->symbol_name, regs->ax);\n".format(i + 1)
+        elif i == 1:
+            _code += "pr_info(\"<%s> param{} value:0x%lx\\n\",\n\
+            p->symbol_name, regs->dx);\n".format(i + 1)
+        elif i == 2:
+            _code += "pr_info(\"<%s> param{} value:0x%lx\\n\",\n\
+            p->symbol_name, regs->cx);\n".format(i + 1)
+        else:
+            _code += "params = sp_regs + %d;\n" % (_stack_size)
+            _code += "pr_info(\"<%s> esp addr: 0x%p, value:0x%lx\\n\",\n\
+            p->symbol_name, params, *(unsigned int *)params);\n"
+            _stack_size += 4
+    _code += "\n}\n\n"
+    return _params + _code
+
 def code_generator(data):
     "#Used to generate module code"
     _head_file = "#include <linux/kernel.h>\n#include <linux/module.h>\n#include <linux/kprobes.h>\n\n"
     _marco = "#define MAX_SYMBOL_LEN 64\n"
-    _symbol_string = "static char symbol[MAX_SYMBOL_LEN] = \"{}\";\nmodule_param_string(symbol, symbol, sizeof(symbol),0644);\n\n".format (data["function_name"])
+    _symbol_string = "static char symbol[MAX_SYMBOL_LEN] = \"{}\";\nmodule_param_string(symbol, symbol,\
+    sizeof(symbol),0644);\n\n".format(data["function_name"])
     _struct = "static struct kprobe kp = {\n.symbol_name = symbol,\n};\n\n"
-    _post = create_posthandler (data["params"])
+    if "ioctl" in data["function_name"]:
+        _post = create_register_posthandler(data["params"])
+    else:
+        _post = create_stack_posthandler(data["params"])
     _main = "static int __init kprobe_init(void)\n\
     {\n\
     int ret;\n\
@@ -50,7 +80,7 @@ def code_generator(data):
     MODULE_LICENSE(\"GPL\");\n"
     return _head_file + _marco + _symbol_string + _struct + _post + _main + _exit + _module
 
-def generate_makefile ():
+def generate_makefile():
     "To generate makefile"
     tmp_str = ""
     tmp_str += "all:\n"
@@ -61,22 +91,22 @@ def generate_makefile ():
 
 def add_makefile_head(module_name=str):
     "adding file_file_head"
-    return "obj-m += {}\n".format (module_name)
+    return "obj-m += {}\n".format(module_name)
 
 def main():
     "import config from files"
     current_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-    if not os.path.exists (current_time):
-        os.makedirs (current_time)
+    if not os.path.exists(current_time):
+        os.makedirs(current_time)
     else:
-        raise Exception ("Current Folder exists")
+        raise Exception("Current Folder exists")
 
     latest_folder = "latest"
-    if os.path.exists (latest_folder):
-        os.remove (latest_folder)
-    os.symlink (current_time, latest_folder)
+    if os.path.exists(latest_folder):
+        os.remove(latest_folder)
+    os.symlink(current_time, latest_folder)
 
-    if len (sys.argv) == 1:
+    if len(sys.argv) == 1:
         configure_file = "configure.json"
     else:
         configure_file = sys.argv[1]
@@ -86,12 +116,12 @@ def main():
 
     for i in config_data:
         code_str = str(code_generator(i))
-        with open("./{}/{}.c".format(current_time,i["function_name"]), "w") as f:
+        with open("./{}/{}.c".format(current_time, i["function_name"]), "w") as f:
             f.write(code_str)
         make_str += add_makefile_head("{}.o".format(i["function_name"]))
 
     make_str += generate_makefile()
-    with open("./{}/Makefile".format (current_time), "w") as f:
+    with open("./{}/Makefile".format(current_time), "w") as f:
         f.write(make_str)
 
 if __name__ == "__main__":
