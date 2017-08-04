@@ -16,8 +16,8 @@ def create_stack_posthandler(params):
     _code += "char *params = NULL;\n"
     for i in range(len(params)):
         _code += "params = sp_regs + %d;\n" % (_stack_size)
-        _code += "pr_info(\"<%s> esp addr: 0x%p, value:0x%lx\\n\",\n\
-        p->symbol_name, params, *(unsigned int *)params);\n"
+        _code += "pr_info(\"<%s> param{} addr: 0x%p, value:0x%lx\\n\",\n\
+        p->symbol_name, params, *(unsigned int *)params);\n".format (i + 1)
         _stack_size += 4
     _code += "\n}\n\n"
     return _params + _code
