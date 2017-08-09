@@ -1,11 +1,11 @@
 [
     {
-    "params": 
+    "params":
     [
-        {"name": "net_device", "type": "int *", "attribute": true}, 
-        {"name": "ifr", "type": "char", "attribute": true},
-        {"name": "cmd", "type": "char *", "attribute": true}
-    ], 
-    "function_name": "e1000"
+        {"name": "net_device", "type": "int *", "concolic": false},
+        {"name": "ifr", "type": "char *", "concolic": false},
+        {"name": "cmd", "type": "int", "concolic": true}
+    ],
+    "function_name": "e1000_ioctl"
     }
 ]

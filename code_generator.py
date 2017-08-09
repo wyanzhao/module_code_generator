@@ -32,7 +32,7 @@ def create_stack_entry_handler(params):
 
     _stack_size = 4
     for i in range(len(params)):
-        if params[i]["attribute"] == True:
+        if params[i]["concolic"] == True:
             _code += "char* arg{}_addr = sp_regs + {};\n".format(i + 1, _stack_size)
             _code += "size_t arg{}_size = {};\n".format(i + 1, get_size(params[i]["type"]))
             _code += "crete_make_concolic(arg{}_addr, arg{}_size, \"crete_probe_arg{}\");\n".format(i + 1, i + 1, i + 1)
@@ -51,7 +51,7 @@ def create_register_posthandler(params):
 
     _stack_size = 4
     for i in range(len(params)):
-        if params[i]["attribute"] == True:
+        if params[i]["concolic"] == True:
             if i == 0:
                 _code += "crete_make_concolic (&regs->ax, sizeof (regs->ax), \"crete_probe_ax\");\n"
             elif i == 1:
