@@ -27,7 +27,7 @@ def create_stack_entry_handler(params):
     "Used to generate post handler function"
     _code = "static int entry_handler(struct kretprobe_instance *ri, struct pt_regs *regs)\n"
     _code += "{\n"
-    _code += "crete_capture_begin();\n"
+    _code += "_crete_capture_begin();\n"
     _code += "char *sp_regs = kernel_stack_pointer (regs);\n"
 
     _stack_size = 4
@@ -35,9 +35,9 @@ def create_stack_entry_handler(params):
         if params[i]["concolic"] == True:
             _code += "char* arg{}_addr = sp_regs + {};\n".format(i + 1, _stack_size)
             _code += "size_t arg{}_size = {};\n".format(i + 1, get_size(params[i]["type"]))
-            _code += "crete_make_concolic(arg{}_addr, arg{}_size, \"crete_probe_arg{}\");\n".format(i + 1, i + 1, i + 1)
+            _code += "_crete_make_concolic(arg{}_addr, arg{}_size, \"crete_probe_arg{}\");\n".format(i + 1, i + 1, i + 1)
         _stack_size += 4
-    
+
     _code += "return 0;\n"
     _code += "}\n"
     return _code
@@ -46,22 +46,22 @@ def create_register_posthandler(params):
     "Used to generate post handler function"
     _code = "static int entry_handler(struct kretprobe_instance *ri, struct pt_regs *regs)\n"
     _code += "{\n"
-    _code += "crete_capture_begin();\n"
+    _code += "_crete_capture_begin();\n"
     _code += "char *sp_regs = kernel_stack_pointer (regs);\n"
 
     _stack_size = 4
     for i in range(len(params)):
         if params[i]["concolic"] == True:
             if i == 0:
-                _code += "crete_make_concolic (&regs->ax, sizeof (regs->ax), \"crete_probe_ax\");\n"
+                _code += "_crete_make_concolic (&regs->ax, sizeof (regs->ax), \"crete_probe_ax\");\n"
             elif i == 1:
-                _code += "crete_make_concolic (&regs->dx, sizeof (regs->dx), \"crete_probe_dx\");\n"
+                _code += "_crete_make_concolic (&regs->dx, sizeof (regs->dx), \"crete_probe_dx\");\n"
             elif i == 2:
-                _code += "crete_make_concolic (&regs->cx, sizeof (regs->cx), \"crete_probe_cx\");\n"
+                _code += "_crete_make_concolic (&regs->cx, sizeof (regs->cx), \"crete_probe_cx\");\n"
             else:
                 _code += "char arg{}_addr = sp_regs + {};\n".format(i + 1, _stack_size)
                 _code += "size_t arg{}_size = {};\n".format(i + 1, get_size(params[i]["type"]))
-                _code += "crete_make_concolic(arg{}_addr, arg{}_size, \"crete_probe_arg{}\");\n".format(i + 1, i + 1, i + 1)
+                _code += "_crete_make_concolic(arg{}_addr, arg{}_size, \"crete_probe_arg{}\");\n".format(i + 1, i + 1, i + 1)
         if i > 2:
             _stack_size += 4
 
@@ -81,9 +81,9 @@ def code_generator(data):
     _symbol_string = "static char symbol[MAX_SYMBOL_LEN] = \"{}\";\n".format (data["function_name"])
     _symbol_string += "module_param_string(symbol, symbol, sizeof(symbol), 0644);\n"
 
-    _crete_announce = "static void (*crete_capture_begin)(void);\n"
-    _crete_announce += "static void (*crete_capture_end)(void);\n"
-    _crete_announce += "static void (*crete_make_concolic)(void*, size_t, const char *);\n"
+    _crete_announce = "static void (*_crete_capture_begin)(void);\n"
+    _crete_announce += "static void (*_crete_capture_end)(void);\n"
+    _crete_announce += "static void (*_crete_make_concolic)(void*, size_t, const char *);\n"
 
     _probe_struct = ""
     _probe_struct += "static struct kretprobe kretp = {\n"
@@ -98,7 +98,7 @@ def code_generator(data):
 
     _ret_handler = "static int ret_handler (struct kretprobe_instance *ri, struct pt_regs *regs)\n"
     _ret_handler += "{\n"
-    _ret_handler += "crete_capture_end();\n"
+    _ret_handler += "_crete_capture_end();\n"
     _ret_handler += "return 0;\n"
     _ret_handler += "}\n"
 
@@ -113,10 +113,10 @@ def code_generator(data):
     _main += "return -1;\n"
     _main += "}\n"
     _main += "printk(KERN_INFO \"Planted return probe at %s :%p\\n\", kretp.kp.symbol_name, kretp.kp.addr);\n"
-    _main += "crete_capture_begin = kallsyms_lookup_name (\"crete_capture_begin\");\n"
-    _main += "crete_capture_end = kallsyms_lookup_name (\"crete_capture_end\");\n"
-    _main += "crete_make_concolic = kallsyms_lookup_name (\"crete_make_concolic\");\n"
-    _main += "if (! (crete_capture_begin && crete_capture_end && crete_make_concolic)) {\n"
+    _main += "_crete_capture_begin = kallsyms_lookup_name (\"crete_capture_begin\");\n"
+    _main += "_crete_capture_end = kallsyms_lookup_name (\"crete_capture_end\");\n"
+    _main += "_crete_make_concolic = kallsyms_lookup_name (\"crete_make_concolic\");\n"
+    _main += "if (! (_crete_capture_begin && _crete_capture_end && _crete_make_concolic)) {\n"
     _main += " printk(KERN_INFO \"[crete] not all function found, please check crete-intrinsics.ko\\n\");\n"
     _main += "return -1;\n"
     _main += "}\n"
@@ -169,7 +169,7 @@ def main():
         configure_file = sys.argv[1]
     with open("{}".format(configure_file), "r") as f:
         config_data = json.load(f)
-    
+
     make_str = ""
     for i in config_data:
         code_str = str(code_generator(i))
