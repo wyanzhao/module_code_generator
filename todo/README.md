@@ -1,3 +1,6 @@
-1. Add "concolic" atrribute to config file
-2. Improve code generation based on e1000_ioctl.c
-3. Fix indentation of json and C files
+1. Support concolic pointer, make as concolic the memory pointed by the pointer
+(with given size, or default value as 4 bytes)
+2. Make Passing argument by regs as default, and add list of exception patterns
+3. Add attribute "workload"
+4. Add attribute "setup"
+5. Automate the whole process, such as execute make by default

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<crete>
+	<exec>/sbin/ifconfig</exec>
+	<args>
+		<arg index="1" value="eth0"/>
+		<arg index="2" value="hw"/>
+		<arg index="3" value="ether"/>
+		<arg index="4" value="02:01:02:03:04:08"/>
+	</args>
+</crete>

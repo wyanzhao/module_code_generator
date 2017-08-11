@@ -1,0 +1,11 @@
+[
+    {
+        "function_name": "e1000_set_mac",
+        "params":
+        [
+            {"name": "netdev", "type": "struct net_device *", "concolic": false},
+            {"name": "p", "type": "void *", "size": 16, "concolic": true}
+        ],
+        "workload": "ifconfig eth0 hw ether 02:01:02:03:04:08",
+    }
+]
