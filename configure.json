@@ -7,7 +7,7 @@
         {"name": "cmd", "type": "int", "concolic": true}
     ],
     "function_name": "e1000_init",
-    "workload": ["ifconfig eth0 hw ether 02:01:02:03:04:08"],
+    "workload": "ifconfig eth0 hw ether 02:01:02:03:04:08",
     "setup": ["vconfig add eth0 5", "ifconfig eth0 mtu 3000 up"]
-}
+    }
 ]

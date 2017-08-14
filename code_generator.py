@@ -5,6 +5,8 @@ import json
 import sys
 import os
 import datetime
+import subprocess
+import shutil
 
 from json2xml import json2xml
 
@@ -146,29 +148,33 @@ def code_generator(data, exception_list):
 
 def generate_makefile():
     "To generate makefile"
-    tmp_str = ""
-    tmp_str += "all:\n"
-    tmp_str += "\tmake -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules\n\n"
-    tmp_str += "clean:\n"
-    tmp_str += "\tmake -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules\n\n"
-    return tmp_str
+    make_str = ""
+    make_str += "my_dir = $(dir $(realpath $(firstword $(MAKEFILE_LIST))))\n"
+    make_str += "all:\n"
+    make_str += "\tmake -C /lib/modules/$(shell uname -r)/build M=$(my_dir) modules\n\n"
+    make_str += "clean:\n"
+    make_str += "\trm -rf $(my_dir)/*.ko $(my_dir)/*.o $(my_dir)/*.symvers $(my_dir)/*.order $(my_dir)/.*.cmd $(my_dir)/.tmp*\n\n"
+    return make_str
 
 def add_makefile_head(module_name=str):
     "adding file_file_head"
     return "obj-m += {}\n".format(module_name)
 
-def main():
+def main(current_time):
     "import config from files"
-    current_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    
     if not os.path.exists(current_time):
         os.makedirs(current_time)
     else:
-        raise Exception("Current Folder exists")
+        os.rmdir (current_time)
+        os.makedirs(current_time)
 
     latest_folder = "latest"
-    if os.path.exists(latest_folder):
-        os.remove(latest_folder)
-    os.symlink(current_time, latest_folder)
+    if not os.path.exists(latest_folder):
+        os.symlink(current_time, latest_folder)
+    else:
+        os.unlink (latest_folder)
+        os.symlink(current_time, latest_folder)
 
     if len(sys.argv) == 1:
         configure_file = "configure.json"
@@ -186,15 +192,25 @@ def main():
         with open("./{}/{}.c".format(current_time, i["function_name"]), "w") as f:
             f.write(code_str)
 
-        xml_str = json2xml.json2xml(i["workload"])
+        xml_str = json2xml.json2xml(i["workload"], i["setup"], function_name = i["function_name"],
+        full_path = os.path.dirname(os.path.abspath(__file__)) + "/{}".format(current_time))
         with open("./{}/output.crete.{}.xml".format(current_time, i["function_name"]), "w") as f:
             f.write(xml_str)
 
         make_str += add_makefile_head("{}.o".format(i["function_name"]))
 
     make_str += generate_makefile()
-    with open("./{}/Makefile".format(current_time), "w") as f:
+    with open("./{}/Makefile".format(current_time), "r") as f:
         f.write(make_str)
 
 if __name__ == "__main__":
-    main()
+    current_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    try:
+        main(current_time)
+    except:
+        shutil.rmtree ("{}".format(current_time))
+        os.unlink("latest")
+        raise
+    else:
+        subprocess.call(["make", "-f", "./latest/Makefile"])
+       
