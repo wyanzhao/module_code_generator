@@ -6,6 +6,7 @@
         {"name": "ifr", "type": "char *", "concolic": false},
         {"name": "cmd", "type": "int", "concolic": true}
     ],
-    "function_name": "e1000_ioctl"
+    "function_name": "e1000_init",
+    "workload": ["ifconfig","eth0", "hw", "ether", "02:01:02:03:04:08"]
     }
 ]

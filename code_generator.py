@@ -6,22 +6,14 @@ import sys
 import os
 import datetime
 
-_platform = "i386"
+from json2xml import json2xml
 
-def get_size(type_name=str):
-    "Return the size of given type"
-    if "*" in type_name and "i386" == _platform:
-        return 4
-    elif "char" in type_name:
-        return 1
-    elif "long" in type_name and _platform == "i386":
-        return 4
-    elif "int" in type_name:
-        return 4
-    elif "32" in type_name:
+def get_size(param):
+    "Return the size of given parameter"
+    if "size" not in param:
         return 4
     else:
-        return 4
+        return param["size"]    
 
 def create_stack_entry_handler(params):
     "Used to generate post handler function"
@@ -32,9 +24,12 @@ def create_stack_entry_handler(params):
 
     _stack_size = 4
     for i in range(len(params)):
-        if params[i]["concolic"] == True:
-            _code += "char* arg{}_addr = sp_regs + {};\n".format(i + 1, _stack_size)
-            _code += "size_t arg{}_size = {};\n".format(i + 1, get_size(params[i]["type"]))
+        if params[i]["concolic"]:
+            if "*" in params[i]["type"]:
+                _code += "char* arg{}_addr = *(sp_regs + {});\n".format(i + 1, _stack_size)
+            else:
+                _code += "char* arg{}_addr = sp_regs + {};\n".format(i + 1, _stack_size)
+            _code += "size_t arg{}_size = {};\n".format(i + 1, get_size(params[i]))
             _code += "_crete_make_concolic(arg{}_addr, arg{}_size, \"crete_probe_arg{}\");\n".format(i + 1, i + 1, i + 1)
         _stack_size += 4
 
@@ -51,16 +46,28 @@ def create_register_posthandler(params):
 
     _stack_size = 4
     for i in range(len(params)):
-        if params[i]["concolic"] == True:
+        if params[i]["concolic"]:
             if i == 0:
-                _code += "_crete_make_concolic (&regs->ax, sizeof (regs->ax), \"crete_probe_ax\");\n"
+                if "*" in params[i]["type"]:
+                    _code += "_crete_make_concolic (regs->ax, sizeof (regs->ax), \"crete_probe_ax\");\n"
+                else:
+                    _code += "_crete_make_concolic (&regs->ax, sizeof (regs->ax), \"crete_probe_ax\");\n"
             elif i == 1:
-                _code += "_crete_make_concolic (&regs->dx, sizeof (regs->dx), \"crete_probe_dx\");\n"
+                if "*" in params[i]["type"]:
+                    _code += "_crete_make_concolic (regs->dx, sizeof (regs->dx), \"crete_probe_dx\");\n"
+                else:
+                    _code += "_crete_make_concolic (&regs->dx, sizeof (regs->dx), \"crete_probe_dx\");\n"
             elif i == 2:
-                _code += "_crete_make_concolic (&regs->cx, sizeof (regs->cx), \"crete_probe_cx\");\n"
+                if "*" in params[i]["type"]:
+                    _code += "_crete_make_concolic (regs->cx, sizeof (regs->cx), \"crete_probe_cx\");\n"
+                else:
+                    _code += "_crete_make_concolic (&regs->cx, sizeof (regs->cx), \"crete_probe_cx\");\n"
             else:
-                _code += "char arg{}_addr = sp_regs + {};\n".format(i + 1, _stack_size)
-                _code += "size_t arg{}_size = {};\n".format(i + 1, get_size(params[i]["type"]))
+                if "*" in params[i]["type"]:
+                    _code += "char arg{}_addr = *(sp_regs + {});\n".format(i + 1, _stack_size)
+                else:
+                    _code += "char arg{}_addr = sp_regs + {};\n".format(i + 1, _stack_size)
+                _code += "size_t arg{}_size = {};\n".format(i + 1, get_size(params[i]))
                 _code += "_crete_make_concolic(arg{}_addr, arg{}_size, \"crete_probe_arg{}\");\n".format(i + 1, i + 1, i + 1)
         if i > 2:
             _stack_size += 4
@@ -69,7 +76,7 @@ def create_register_posthandler(params):
     _code += "}\n"
     return _code
 
-def code_generator(data):
+def code_generator(data, exception_list):
     "Used to generate module code"
     _head_file = "#include <linux/kernel.h>\n"
     _head_file += "#include <linux/module.h>\n"
@@ -91,10 +98,10 @@ def code_generator(data):
     _probe_struct += ".entry_handler = entry_handler,\n"
     _probe_struct += "};\n"
 
-    if "ioctl" in data["function_name"]:
-        _entry_handler = create_register_posthandler(data["params"])
-    else:
+    if data["function_name"] in exception_list:
         _entry_handler = create_stack_entry_handler(data["params"])
+    else:
+        _entry_handler = create_register_posthandler(data["params"])
 
     _ret_handler = "static int ret_handler (struct kretprobe_instance *ri, struct pt_regs *regs)\n"
     _ret_handler += "{\n"
@@ -170,11 +177,19 @@ def main():
     with open("{}".format(configure_file), "r") as f:
         config_data = json.load(f)
 
+    with open("exception.json", "r") as f:
+        exception_list = json.load(f)
+
     make_str = ""
     for i in config_data:
-        code_str = str(code_generator(i))
+        code_str = code_generator(i, exception_list)
         with open("./{}/{}.c".format(current_time, i["function_name"]), "w") as f:
             f.write(code_str)
+
+        xml_str = json2xml.json2xml(i["workload"])
+        with open("./{}/output.crete.{}.xml".format(current_time, i["function_name"]), "w") as f:
+            f.write(xml_str)
+
         make_str += add_makefile_head("{}.o".format(i["function_name"]))
 
     make_str += generate_makefile()

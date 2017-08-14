@@ -8,3 +8,5 @@
 		<arg index="4" value="02:01:02:03:04:08"/>
 	</args>
 </crete>
+
+"{"crete": {"exec": "/sbin/ifconfig"}, "args"}"
