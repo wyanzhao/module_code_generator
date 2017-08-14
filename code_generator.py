@@ -200,7 +200,7 @@ def main(current_time):
         make_str += add_makefile_head("{}.o".format(i["function_name"]))
 
     make_str += generate_makefile()
-    with open("./{}/Makefile".format(current_time), "r") as f:
+    with open("./{}/Makefile".format(current_time), "w") as f:
         f.write(make_str)
 
 if __name__ == "__main__":
