@@ -7,6 +7,9 @@
 		<arg index="3" value="ether"/>
 		<arg index="4" value="02:01:02:03:04:08"/>
 	</args>
+        <setup_commands>
+                <setup_command>vconfig add eth0 5</setup_command>
+                <setup_command>ifconfig eth0 mtu 3000up</setup_command>
+        </setup_commands>
+        <kprobe_module>/full/path/to/kernel_module.ko</kprobe_module>
 </crete>
-
-"{"crete": {"exec": "/sbin/ifconfig"}, "args"}"
