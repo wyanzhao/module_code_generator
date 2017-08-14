@@ -1,5 +1,5 @@
-"This module is used to generate c code by reading from configure file"
 #!/usr/bin/python3
+"This module is used to generate c code by reading from configure file"
 
 import json
 import sys
