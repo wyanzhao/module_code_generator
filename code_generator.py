@@ -170,7 +170,7 @@ def main(current_time):
         os.makedirs(current_time)
 
     latest_folder = "latest"
-    if not os.path.exists(latest_folder):
+    if not os.path.lexists(latest_folder):
         os.symlink(current_time, latest_folder)
     else:
         os.unlink (latest_folder)
