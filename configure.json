@@ -2,11 +2,11 @@
     {
     "params":
     [
-        {"name": "net_device", "type": "int *", "concolic": false},
-        {"name": "ifr", "type": "char *", "concolic": false},
+        {"name": "net_device", "type": "int *", "size": 16, "concolic": true},
+        {"name": "ifr", "type": "char *", "concolic": true},
         {"name": "cmd", "type": "int", "concolic": true}
     ],
-    "function_name": "e1000_init",
+    "function_name": "e1000_ioctl",
     "workload": "ifconfig eth0 hw ether 02:01:02:03:04:08",
     "setup": ["vconfig add eth0 5", "ifconfig eth0 mtu 3000 up"]
     }

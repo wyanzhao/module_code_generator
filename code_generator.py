@@ -51,19 +51,19 @@ def create_register_posthandler(params):
         if params[i]["concolic"]:
             if i == 0:
                 if "*" in params[i]["type"]:
-                    _code += "_crete_make_concolic (regs->ax, sizeof (regs->ax), \"crete_probe_ax\");\n"
+                    _code += "_crete_make_concolic (regs->ax, {}, \"crete_probe_ax\");\n".format(get_size(params[i]))
                 else:
-                    _code += "_crete_make_concolic (&regs->ax, sizeof (regs->ax), \"crete_probe_ax\");\n"
+                    _code += "_crete_make_concolic (&regs->ax, {}, \"crete_probe_ax\");\n".format(get_size(params[i]))
             elif i == 1:
                 if "*" in params[i]["type"]:
-                    _code += "_crete_make_concolic (regs->dx, sizeof (regs->dx), \"crete_probe_dx\");\n"
+                    _code += "_crete_make_concolic (regs->dx, {}, \"crete_probe_dx\");\n".format(get_size(params[i]))
                 else:
-                    _code += "_crete_make_concolic (&regs->dx, sizeof (regs->dx), \"crete_probe_dx\");\n"
+                    _code += "_crete_make_concolic (&regs->dx, {}, \"crete_probe_dx\");\n".format(get_size(params[i]))
             elif i == 2:
                 if "*" in params[i]["type"]:
-                    _code += "_crete_make_concolic (regs->cx, sizeof (regs->cx), \"crete_probe_cx\");\n"
+                    _code += "_crete_make_concolic (regs->cx, {}, \"crete_probe_cx\");\n".format(get_size(params[i]))
                 else:
-                    _code += "_crete_make_concolic (&regs->cx, sizeof (regs->cx), \"crete_probe_cx\");\n"
+                    _code += "_crete_make_concolic (&regs->cx, {}, \"crete_probe_cx\");\n".format(get_size(params[i]))
             else:
                 if "*" in params[i]["type"]:
                     _code += "char arg{}_addr = *(sp_regs + {});\n".format(i + 1, _stack_size)
